@@ -21,8 +21,7 @@
   version = "v2.7.1"
 
 [[projects]]
-  branch = "master"
-  digest = "1:caae129d50a708961ada0620f4206700f89e95bf6a856acd1d4472e5cda406d2"
+  digest = "1:8e2692e1c1ac0289ca14ee3131492eaeb7e3dcd44e780f91de742b721b1b0944"
   name = "github.com/docker/docker"
   packages = [
     "api",
@@ -45,7 +44,7 @@
     "errdefs",
   ]
   pruneopts = "NUT"
-  revision = "33c3200e0d1638810721cf2e6a547fb9265968a5"
+  revision = "bc4c1c238b551ce58fc26690523354d1571bab1d"
 
 [[projects]]
   digest = "1:2a47f7eb1a2c30428d1ee6808cb66d4deb17e68a3e55d696f03c8068552ba5e8"

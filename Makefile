@@ -10,7 +10,10 @@ dive: build
 	dive $(DOCKER_IMAGE)
 
 test: build
-	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock $(DOCKER_IMAGE)
+	docker run --rm \
+		--name docker-reaper-test \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		$(DOCKER_IMAGE)
 
 publish: build
 	docker push $(DOCKER_IMAGE)

@@ -1,6 +1,7 @@
+# Use a version of the docker client which works for Server v1.39
 [[constraint]]
   name = "github.com/docker/docker"
-  branch = "master"
+  revision = "bc4c1c238b551ce58fc26690523354d1571bab1d"
 
 [prune]
   non-go = true
