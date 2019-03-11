@@ -1,5 +1,6 @@
 FROM golang as builder
-COPY . /go/src/github.com/parkr/docker-kill-unhealthy-containers
+COPY vendor/ /go/src/github.com/parkr/docker-kill-unhealthy-containers/vendor
+COPY cmd/ /go/src/github.com/parkr/docker-kill-unhealthy-containers/cmd
 RUN CGO_ENABLED=0 GOOS=linux \
     go install -v -ldflags '-w -extldflags "-static"' \
     github.com/parkr/docker-kill-unhealthy-containers/...

@@ -9,7 +9,7 @@ build:
 dive: build
 	dive $(DOCKER_IMAGE)
 
-test: build
+test: build run-unhealthy
 	docker run --rm \
 		--name docker-reaper-test \
 		-v /var/run/docker.sock:/var/run/docker.sock \
@@ -17,3 +17,12 @@ test: build
 
 publish: build
 	docker push $(DOCKER_IMAGE)
+
+run-unhealthy: build-unhealthy
+	docker run -d --rm \
+		--name unhealthy \
+		unhealthy \
+		sleep 6000
+
+build-unhealthy:
+	docker build -t unhealthy unhealthy
