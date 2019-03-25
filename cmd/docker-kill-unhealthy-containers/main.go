@@ -24,6 +24,8 @@ func main() {
 	flag.StringVar(&observeIntervalStr, "interval", defaultObserveInterval, "Interval to check containers")
 	var checkTimeoutStr string
 	flag.StringVar(&checkTimeoutStr, "timeout", defaultCheckTimeout, "Maximum duration of the total reap operation")
+	var dryRun bool
+	flag.BoolVar(&dryRun, "dry-run", false, "Observe health but don't act")
 	flag.Parse()
 
 	logPrefix := "[main]"
@@ -56,12 +58,12 @@ func main() {
 
 	log.Println(logPrefix, "observing every", observeInterval, "and check timeout is", checkTimeout)
 
-	observe(dockerd)
+	observe(dockerd, dryRun)
 }
 
 // observe runs a continuous loop reading running containers for health checks
 // and stops unhealthy containers.
-func observe(dockerd *client.Client) {
+func observe(dockerd *client.Client, dryRun bool) {
 	ticker := time.NewTicker(observeInterval)
 	for range ticker.C {
 		func() {
@@ -78,14 +80,14 @@ func observe(dockerd *client.Client) {
 					if len(container.Names) > 0 {
 						name = container.Names[0]
 					}
-					go checkContainerWithTimeout(dockerd, container.ID, name)
+					go checkContainerWithTimeout(dockerd, container.ID, name, dryRun)
 				}
 			}
 		}()
 	}
 }
 
-func checkContainerWithTimeout(dockerd *client.Client, containerId, containerName string) {
+func checkContainerWithTimeout(dockerd *client.Client, containerId, containerName string, dryRun bool) {
 	logPrefix := "[" + containerId[:10] + " " + containerName + "]"
 	logger := log.New(os.Stdout, "", log.LstdFlags)
 
@@ -93,13 +95,13 @@ func checkContainerWithTimeout(dockerd *client.Client, containerId, containerNam
 	defer cancel()
 
 	select {
-	case <-checkContainer(ctx, dockerd, logger, logPrefix, containerId):
+	case <-checkContainer(ctx, dockerd, logger, logPrefix, containerId, dryRun):
 	case <-ctx.Done():
 		log.Println(logPrefix, "context exceeded checking... maybe my timeouts need tweaking")
 	}
 }
 
-func checkContainer(ctx context.Context, dockerd *client.Client, logger *log.Logger, logPrefix, containerId string) <-chan struct{} {
+func checkContainer(ctx context.Context, dockerd *client.Client, logger *log.Logger, logPrefix, containerId string, dryRun bool) <-chan struct{} {
 	done := make(chan struct{})
 	go func() {
 		start := time.Now()
@@ -133,6 +135,12 @@ func checkContainer(ctx context.Context, dockerd *client.Client, logger *log.Log
 				logPrefix,
 				container.State.Health.FailingStreak,
 				failingStreakThreshold)
+			done <- struct{}{}
+			return
+		}
+		
+		if dryRun {
+			logger.Printf("%s unhealthy but skipping since we dry running it", logPrefix)
 			done <- struct{}{}
 			return
 		}
